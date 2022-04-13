@@ -24,11 +24,6 @@ time = now.strftime("%H:%M")
 today = now.strftime('%Y-%m-%d')
 
 
-from sqlalchemy import create_engine
-engine = create_engine(f'mssql+pyodbc://{user}:{password}@{hostName}:1433/{db}?driver=ODBC+Driver+17+for+SQL+Server')
-conn = engine.connect()
-
-
 with DAG(
     dag_id='web.001_cdiB3_diario',
     schedule_interval='00 11 * * *', # executar 22h e 3 minutos horário UTC
@@ -66,10 +61,11 @@ with DAG(
         print('PASSO 02 - Criando Dataframe com os arrays')
 
         df = pd.DataFrame({'Data':today, 'Dia': dia, 'ind252':idx_252, 'ind360':idx_360})
-        print(df)
         df.to_csv('dadosB3.csv', index=False)
 
     def def_transformar_colunas_em_valores(**kwargs):
+        print('PASSO 03 - Alterando os tipos de dados')
+
         df = pd.read_csv('dadosB3.csv')
 
         df['ind252'] = df['ind252'].replace(to_replace=',', value='.', regex=True)
@@ -79,17 +75,17 @@ with DAG(
         df['ind252'] = df['ind252'].astype(float)
         df['ind360'] = df['ind360'].astype(float)
 
-        print(df)
-        print(df.dtypes)
         df.to_csv('dadosB3.csv', index=False)
     
-    def def_lercsv_gravar_sqlserver():
+    def def_lercsv_gravar():
+        print('PASSO 04 - Gravando resultado da transformação')
+        
         df = pd.read_csv('dadosB3.csv')
         df['Data'] = df['Data'].astype('datetime64[ns]')
-        print(df)
-        print(df.dtypes)
-        df.to_sql('web_curva_cdi_b3', engine, index=False, if_exists='append')
         
+        ###################################
+        #####IMPLEMENTAR GRAVAÇÃO DE DADOS#
+        ###################################
         
     ## criação das tasks de serviço
     task_acessar_taxas_b3 = PythonOperator(
@@ -104,11 +100,11 @@ with DAG(
         python_callable=def_transformar_colunas_em_valores
     )
     
-    task_lercsv_gravar_sqlserver = PythonOperator(
+    task_lercsv_gravar = PythonOperator(
         task_id='id_lercsv_gravar_sqlserver',
         provide_context=True,
-        python_callable=def_lercsv_gravar_sqlserver
+        python_callable=def_lercsv_gravar
     )
 
 
-    task_acessar_taxas_b3 >> task_mudar_tipo_dado >> task_lercsv_gravar_sqlserver
+    task_acessar_taxas_b3 >> task_mudar_tipo_dado >> task_lercsv_gravar

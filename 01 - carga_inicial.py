@@ -1,5 +1,3 @@
-from pprint import pprint
-import datetime
 from bs4 import BeautifulSoup
 import pandas as pd
 from urllib.request import urlopen
@@ -14,8 +12,7 @@ time = now.strftime("%H:%M")
 today = now.strftime('%Y-%m-%d')
 
 
-
-RangeDatas = pd.date_range(start="2020-01-01",end="2022-03-31").set_names('dataDia')
+RangeDatas = pd.date_range(start="2022-01-01",end="2022-03-31").set_names('dataDia')
 ## Transformando a variável em um dataframe Pandas e adicioando colunas ao dataframe
 dataFrameDatas = pd.DataFrame(RangeDatas)
 dataFrameDatas['year'] = RangeDatas.strftime('%Y')
