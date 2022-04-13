@@ -29,7 +29,7 @@ with DAG(
     schedule_interval='00 11 * * *', # executar 22h e 3 minutos horário UTC
     start_date=datetime(2022, 4, 10),
     catchup=False,
-    tags=['WEB','DIARIO','thyago.carvalho'],
+    #tags=[''],
 ) as dag:
 
     def def_acessar_taxas_b3(**kwargs):
